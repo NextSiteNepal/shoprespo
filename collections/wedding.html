@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridal & Wedding Jewelry Nepal | Sandesh Sun Chandi Pasal</title>
+    <meta name="description" content="Explore bridal and wedding jewelry collections in Kathmandu — complete gold and silver bridal sets from Sandesh Sun Chandi Pasal, a trusted jewelry store in Nepal with 25+ years of service.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.sandeshsunpasal.com/collections/wedding.html">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Bridal & Wedding Jewelry Nepal | Sandesh Sun Chandi Pasal">
+    <meta property="og:description" content="Explore bridal and wedding jewelry collections in Kathmandu — complete gold and silver bridal sets from Sandesh Sun Chandi Pasal, a trusted jewelry store in Nepal with 25+ years of service.">
+    <meta property="og:url" content="https://www.sandeshsunpasal.com/collections/wedding.html">
+    <meta property="og:site_name" content="Sandesh Sun Chandi Pasal">
+    <meta property="og:image" content="https://www.sandeshsunpasal.com/images/shop-storefront.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bridal & Wedding Jewelry Nepal | Sandesh Sun Chandi Pasal">
+    <meta name="twitter:description" content="Explore bridal and wedding jewelry collections in Kathmandu — complete gold and silver bridal sets from Sandesh Sun Chandi Pasal, a trusted jewelry store in Nepal with 25+ years of service.">
+    <meta name="twitter:image" content="https://www.sandeshsunpasal.com/images/shop-storefront.png">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&family=Noto+Serif+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getFirestore, collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCs3ChiOcNjrlGA7AlbVfdaz_xpgtFRAlU",
+            authDomain: "sandeshsunpasal.firebaseapp.com",
+            projectId: "sandeshsunpasal",
+            storageBucket: "sandeshsunpasal.firebasestorage.app",
+            messagingSenderId: "170916745454",
+            appId: "1:170916745454:web:a9d8d759a1b105915fe3ff",
+            measurementId: "G-G18NYPKWCQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const COLLECTION_ID = 'wedding';
+        const COLLECTION_LABEL = 'Wedding Collection';
+        const WHATSAPP_NUMBER = '9851341909';
+
+        let allProducts = [];
+        let activeCategory = 'all';
+        let searchQuery = '';
+
+        async function loadCategories() {
+            try {
+                const snap = await getDocs(collection(db, 'categories'));
+                const cats = [{ id: 'all', name: 'All' }];
+                snap.forEach(doc => cats.push({ id: doc.id, ...doc.data() }));
+                renderCategoryTabs(cats);
+            } catch (e) {
+                renderCategoryTabs([{ id: 'all', name: 'All' }, { id: 'rings', name: 'Rings' }, { id: 'necklaces', name: 'Necklaces' }, { id: 'earrings', name: 'Earrings' }, { id: 'bracelets', name: 'Bracelets' }, { id: 'bangles', name: 'Bangles' }, { id: 'chains', name: 'Chains' }, { id: 'pendants', name: 'Pendants' }, { id: 'nosepins', name: 'Nose Pins' }, { id: 'anklets', name: 'Anklets' }, { id: 'coins', name: 'Coins' }, { id: 'others', name: 'Others' }]);
+            }
+        }
+
+        async function loadProducts() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('productGrid').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            try {
+                const q = query(collection(db, 'products'), where('collection', '==', COLLECTION_ID));
+                const snap = await getDocs(q);
+                allProducts = [];
+                snap.forEach(doc => { const d = doc.data(); if (d.availability !== false) allProducts.push({ id: doc.id, ...d }); });
+                allProducts.sort((a, b) => (a.orderNumber || '').localeCompare(b.orderNumber || '', undefined, { numeric: true }));
+            } catch (e) {
+                console.error('Error loading products:', e);
+                allProducts = [];
+            }
+            document.getElementById('loadingState').style.display = 'none';
+            renderProducts();
+        }
+
+        function renderCategoryTabs(cats) {
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = '';
+            cats.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `category-tab font-body text-xs tracking-[0.2em] uppercase px-5 py-2.5 border transition-all whitespace-nowrap ${cat.id === 'all' ? 'border-gold-500 text-onyx-700 bg-gold-50' : 'border-gold-200/60 text-onyx-400 hover:border-gold-400 hover:text-onyx-600'}`;
+                btn.textContent = cat.name;
+                btn.dataset.cat = cat.id;
+                btn.addEventListener('click', () => {
+                    activeCategory = cat.id;
+                    document.querySelectorAll('.category-tab').forEach(b => {
+                        b.classList.remove('border-gold-500', 'text-onyx-700', 'bg-gold-50');
+                        b.classList.add('border-gold-200/60', 'text-onyx-400');
+                    });
+                    btn.classList.add('border-gold-500', 'text-onyx-700', 'bg-gold-50');
+                    btn.classList.remove('border-gold-200/60', 'text-onyx-400');
+                    renderProducts();
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            const empty = document.getElementById('emptyState');
+            const countEl = document.getElementById('productCount');
+
+            let filtered = allProducts.filter(p => {
+                const matchCat = activeCategory === 'all' || (p.category || '').toLowerCase() === activeCategory.toLowerCase();
+                const matchSearch = !searchQuery || 
+                    (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (p.orderNumber || '').toLowerCase().includes(searchQuery.toLowerCase());
+                return matchCat && matchSearch;
+            });
+
+            countEl.textContent = `${filtered.length} item${filtered.length !== 1 ? 's' : ''}`;
+
+            if (filtered.length === 0) {
+                grid.style.display = 'none';
+                empty.style.display = 'flex';
+                return;
+            }
+
+            grid.style.display = 'grid';
+            empty.style.display = 'none';
+            grid.innerHTML = '';
+
+            filtered.forEach((product, i) => {
+                const imgUrl = (product.images && product.images.length > 0) ? product.images[0] : `https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=400&q=80`;
+                const waMsgRaw = `Hello, I would like to get details about :\n\nProduct Name: ${product.title || ''}\nCollection: ${COLLECTION_LABEL}\nCategory: ${product.category || ''}\nOrder Number: ${product.orderNumber || ''}`;
+                const waMsg = encodeURIComponent(waMsgRaw);
+                const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
+
+                const card = document.createElement('div');
+                card.className = 'product-card bg-white group';
+                card.style.animation = `fadeInUp 0.5s ease-out ${i * 0.06}s both`;
+                card.innerHTML = `
+                    <div class="relative overflow-hidden aspect-square bg-ivory-100">
+                        <img src="${imgUrl}" alt="${product.title ? product.title + ' - Wedding Jewelry Kathmandu' : 'Wedding Jewelry Kathmandu'}" 
+                             class="w-full h-full object-cover product-img transition-transform duration-700 group-hover:scale-105"
+                             loading="lazy"
+                             onerror="this.src='https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=400&q=80'">
+                        <div class="product-overlay absolute inset-0 bg-onyx-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-400 flex items-end justify-center pb-4">
+                        </div>
+                        ${product.availability === false ? '<div class="absolute top-3 left-3 bg-onyx-600 text-ivory-100 text-[0.55rem] tracking-widest uppercase px-3 py-1 font-body">Sold Out</div>' : ''}
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <h3 class="font-display text-lg text-onyx-700 leading-tight">${product.title || 'Untitled Product'}</h3>
+                            <span class="font-body text-[0.55rem] tracking-[0.15em] uppercase text-gold-600 bg-gold-50 border border-gold-200 px-2 py-1 whitespace-nowrap flex-shrink-0">#${product.orderNumber || '—'}</span>
+                        </div>
+                        ${product.category ? `<span class="font-body text-[0.6rem] tracking-[0.2em] uppercase text-onyx-400 block mb-2">${product.category}</span>` : ''}
+                        ${product.description ? `<p class="font-elegant text-sm text-onyx-400 leading-relaxed mb-4 line-clamp-2">${product.description}</p>` : '<div class="mb-4"></div>'}
+                        <div class="mt-auto pt-1">
+                            <a href="${waLink}" target="_blank" rel="noopener" 
+                               class="get-details-btn group/btn w-full inline-flex items-center justify-center gap-2.5 relative overflow-hidden border border-gold-400 text-gold-700 bg-gradient-to-r from-gold-50 to-amber-50 py-3 font-body text-[0.62rem] tracking-[0.25em] uppercase transition-all duration-300 hover:border-gold-600 hover:shadow-[0_4px_20px_rgba(201,169,110,0.35)] hover:scale-[1.02]">
+                                <span class="absolute inset-0 bg-gradient-to-r from-gold-500 to-amber-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
+                                <svg class="w-3.5 h-3.5 relative z-10 text-green-600 group-hover/btn:text-white transition-colors duration-300" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.506 3.935 1.395 5.61L0 24l6.545-1.371A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.497-5.22-1.365l-.374-.222-3.884.814.827-3.79-.243-.39A9.953 9.953 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                                <span class="relative z-10 group-hover/btn:text-white transition-colors duration-300">Get Details</span>
+                            </a>
+                        </div>
+                    </div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadCategories();
+            await loadProducts();
+
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value.trim();
+                renderProducts();
+            });
+        });
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { 50:'#FDF8EE',100:'#FAF0D7',200:'#F2DFA8',300:'#E8C96A',400:'#D4A843',500:'#C9A96E',600:'#B8923A',700:'#9A742E',800:'#7D5D28',900:'#6A4D23' },
+                        ivory: { 50:'#FDFCFA',100:'#FAF7F2',200:'#F5EFE6',300:'#EDE4D7',400:'#DDD1BE' },
+                        onyx: { 50:'#f5f5f5',100:'#e0e0e0',200:'#b0b0b0',300:'#808080',400:'#505050',500:'#303030',600:'#1a1a1a',700:'#111111',800:'#0a0a0a',900:'#050505' }
+                    },
+                    fontFamily: { 'display':['Playfair Display','serif'],'elegant':['Cormorant Garamond','serif'],'body':['Jost','sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior:smooth; overflow-x:hidden; }
+        body { font-family:'Jost',sans-serif; background:#FDFCFA; color:#1a1a1a; overflow-x:hidden; }
+        ::selection { background:#C9A96E; color:#fff; }
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:#FAF7F2; }
+        ::-webkit-scrollbar-thumb { background:#C9A96E; border-radius:3px; }
+
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes shimmer { 0% { background-position:-200% center; } 100% { background-position:200% center; } }
+
+        .gold-line { height:1px; background:linear-gradient(90deg, transparent, #C9A96E, transparent); }
+        .nav-link { position:relative; letter-spacing:0.15em; text-transform:uppercase; font-size:0.7rem; font-weight:300; }
+        .nav-link::after { content:''; position:absolute; bottom:-4px; left:50%; width:0; height:1px; background:#C9A96E; transition:all 0.3s ease; transform:translateX(-50%); }
+        .nav-link:hover::after { width:100%; }
+
+        .nepali-gold-3d-dark { font-family:'Noto Serif Devanagari',serif; color:#E8C96A; text-shadow:0 1px 1px rgba(154,116,46,0.30); }
+
+        .product-card { border:1px solid #F2DFA8; transition:all 0.5s cubic-bezier(0.25,0.46,0.45,0.94); display:flex; flex-direction:column; }
+        .product-card:hover { transform:translateY(-6px); box-shadow:0 20px 60px rgba(201,169,110,0.15); border-color:#C9A96E; }
+        .line-clamp-2 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+        .category-scroll { scrollbar-width:none; }
+        .category-scroll::-webkit-scrollbar { display:none; }
+
+        .luxury-divider { display:flex; align-items:center; gap:16px; justify-content:center; }
+        .luxury-divider .line { height:1px; width:60px; background:linear-gradient(90deg, transparent, #C9A96E); }
+        .luxury-divider .line:last-child { background:linear-gradient(90deg, #C9A96E, transparent); }
+
+        img { opacity:0; transition:opacity 0.5s ease; }
+        img.loaded, .product-img { opacity:1; }
+        img[loading="lazy"] { opacity:1; }
+
+        .mobile-menu { transform:translateX(100%); transition:transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94); }
+        .mobile-menu.open { transform:translateX(0); }
+
+        .hero-collection { background: linear-gradient(135deg, #3a1a1a 0%, #5c2a2a 100%); }
+
+        .marquee { animation: marquee 30s linear infinite; }
+        @keyframes marquee { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
+    </style>
+</head>
+<body class="bg-ivory-50">
+
+    <!-- Announcement Bar -->
+    <div class="bg-onyx-600 text-ivory-200 py-2 overflow-hidden">
+        <div class="marquee whitespace-nowrap">
+            <span class="font-body text-[0.65rem] tracking-[0.2em] uppercase mx-8">Visit us in Sitapaila, Kathmandu — Beside Burger House, Sitapaila Marg</span>
+            <span class="text-gold-500 mx-4">◆</span>
+            <span class="font-body text-[0.65rem] tracking-[0.2em] uppercase mx-8">Bridal Special & Silver — Certified Quality Guaranteed</span>
+            <span class="text-gold-500 mx-4">◆</span>
+            <span class="font-body text-[0.65rem] uppercase mx-8">सन्देश सुन चाँदी पसल — Your Trusted Gold & Silver Shop</span>
+            <span class="text-gold-500 mx-4">◆</span>
+            <span class="font-body text-[0.65rem] tracking-[0.2em] uppercase mx-8">Visit us in Sitapaila, Kathmandu — Beside Burger House, Sitapaila Marg</span>
+            <span class="text-gold-500 mx-4">◆</span>
+            <span class="font-body text-[0.65rem] tracking-[0.2em] uppercase mx-8">Bridal Special & Silver — Certified Quality Guaranteed</span>
+            <span class="text-gold-500 mx-4">◆</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="sticky top-0 z-50 bg-ivory-50/90 backdrop-blur-xl border-b border-gold-200/30 transition-all duration-500">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="flex items-center justify-between h-20 md:h-24">
+                <div class="hidden lg:flex items-center gap-8">
+                    <a href="../index.html#collections" class="nav-link text-onyx-500 hover:text-gold-600 transition-colors">Collections</a>
+                    <a href="../index.html#heritage" class="nav-link text-onyx-500 hover:text-gold-600 transition-colors">Heritage</a>
+                </div>
+                <button id="mobileMenuBtn" class="lg:hidden text-onyx-600 hover:text-gold-600 transition-colors">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <a href="../index.html" class="absolute left-1/2 -translate-x-1/2 text-center">
+                    <div class="nepali-gold-3d-dark text-xl md:text-2xl leading-tight">सन्देश सुन चाँदी पसल</div>
+                    <div class="font-body text-[0.5rem] tracking-[0.3em] uppercase text-onyx-400 mt-0.5">Sandesh Sun Chandi Pasal</div>
+                </a>
+                <div class="hidden lg:flex items-center gap-8">
+                    <a href="../index.html#story" class="nav-link text-onyx-500 hover:text-gold-600 transition-colors">Our Story</a>
+                    <a href="../index.html#contact" class="nav-link text-onyx-500 hover:text-gold-600 transition-colors">Contact</a>
+                    <div class="relative">
+                        <input id="searchInput" type="text" placeholder="Search products…" class="w-44 bg-ivory-100 border border-gold-200 focus:border-gold-500 outline-none font-body text-xs tracking-wider px-4 py-2 text-onyx-600 placeholder:text-onyx-300 transition-colors">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-onyx-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    </div>
+                </div>
+                <button class="lg:hidden text-onyx-500" id="mobileSearchBtn">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="mobile-menu fixed inset-0 z-[60] bg-ivory-50">
+        <div class="flex flex-col h-full">
+            <div class="flex items-center justify-between px-6 h-20 border-b border-gold-200/30">
+                <div class="nepali-gold-3d-dark text-lg">सन्देश सुन चाँदी पसल</div>
+                <button id="mobileMenuClose" class="text-onyx-600 hover:text-gold-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="px-6 pt-4">
+                <input id="mobileSearchInput" type="text" placeholder="Search products…" class="w-full bg-ivory-100 border border-gold-200 focus:border-gold-500 outline-none font-body text-sm px-4 py-3 text-onyx-600 placeholder:text-onyx-300 transition-colors">
+            </div>
+            <div class="flex-1 flex flex-col justify-center px-8 gap-6">
+                <a href="../index.html" class="font-display text-3xl text-onyx-600 hover:text-gold-600 transition-colors">Home</a>
+                <a href="../index.html#collections" class="font-display text-3xl text-onyx-600 hover:text-gold-600 transition-colors">Collections</a>
+                <a href="../index.html#contact" class="font-display text-3xl text-onyx-600 hover:text-gold-600 transition-colors">Contact</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Banner -->
+    <section class="hero-collection py-20 md:py-28 text-center relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image:url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L30 25 L25 15 Z' fill='none' stroke='%23C9A96E' stroke-width='0.5'/%3E%3C/svg%3E\")"></div>
+        <div class="absolute top-6 left-6 w-16 h-16 border-t border-l border-gold-500/30"></div>
+        <div class="absolute top-6 right-6 w-16 h-16 border-t border-r border-gold-500/30"></div>
+        <div class="absolute bottom-6 left-6 w-16 h-16 border-b border-l border-gold-500/30"></div>
+        <div class="absolute bottom-6 right-6 w-16 h-16 border-b border-r border-gold-500/30"></div>
+        <div class="relative max-w-4xl mx-auto px-6">
+            <nav class="flex items-center justify-center gap-2 mb-8">
+                <a href="../index.html" class="font-body text-[0.6rem] tracking-[0.2em] uppercase text-ivory-400/60 hover:text-gold-400 transition-colors">Home</a>
+                <i data-lucide="chevron-right" class="w-3 h-3 text-ivory-400/40"></i>
+                <span class="font-body text-[0.6rem] tracking-[0.2em] uppercase text-gold-500">Wedding Collection</span>
+            </nav>
+            <span class="font-body text-[0.65rem] tracking-[0.4em] uppercase text-gold-500 block mb-4">Bridal Special</span>
+            <h1 class="font-display text-5xl md:text-7xl text-white mb-4">Wedding Collection</h1>
+            <div class="luxury-divider mt-6 mb-6">
+                <div class="line"></div>
+                <i data-lucide="diamond" class="w-4 h-4 text-gold-500"></i>
+                <div class="line"></div>
+            </div>
+            <p class="font-elegant text-lg md:text-xl text-ivory-300 leading-relaxed max-w-xl mx-auto">
+                Complete bridal sets — Tilhari, Chura, Bichhiya & traditional wedding jewelry crafted with love.
+            </p>
+        </div>
+    </section>
+
+    <!-- Category Tabs + Search -->
+    <div class="sticky top-[96px] z-40 bg-ivory-50/95 backdrop-blur-xl border-b border-gold-200/30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+            <div class="flex items-center gap-4 py-4">
+                <div id="categoryTabs" class="flex gap-2 overflow-x-auto category-scroll flex-1 pb-1">
+                    <div class="font-body text-xs text-onyx-300 animate-pulse px-2">Loading categories…</div>
+                </div>
+                <span id="productCount" class="font-body text-[0.6rem] tracking-[0.2em] uppercase text-onyx-400 whitespace-nowrap hidden md:block">— items</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Section -->
+    <section class="py-16 md:py-24 bg-ivory-50">
+        <div class="max-w-7xl mx-auto px-6 md:px-12">
+
+            <!-- Loading State -->
+            <div id="loadingState" class="flex flex-col items-center justify-center py-24 gap-4">
+                <div class="w-10 h-10 border-2 border-gold-200 border-t-gold-500 rounded-full animate-spin"></div>
+                <span class="font-body text-xs tracking-[0.2em] uppercase text-onyx-300">Loading collection…</span>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-24 gap-4 text-center">
+                <i data-lucide="package-x" class="w-12 h-12 text-gold-300"></i>
+                <h3 class="font-display text-2xl text-onyx-500">No products found</h3>
+                <p class="font-elegant text-onyx-400">Try a different category or search term.</p>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6" style="display:none"></div>
+        </div>
+    </section>
+
+    <!-- Footer Strip -->
+    <footer class="bg-onyx-600 text-ivory-300 py-10 text-center">
+        <div class="nepali-gold-3d-dark text-lg mb-1">सन्देश सुन चाँदी पसल</div>
+        <div class="font-body text-[0.55rem] tracking-[0.3em] uppercase text-gold-500 mb-6">Sandesh Sun Chandi Pasal</div>
+        <div class="gold-line w-24 mx-auto mb-6"></div>
+        <p class="font-body text-[0.6rem] tracking-wider text-ivory-400/50">© 2026 Sandesh Sun Chandi Pasal. All rights reserved.</p>
+        <a href="../index.html" class="inline-flex items-center gap-2 mt-6 font-body text-xs tracking-[0.2em] uppercase text-gold-500 hover:text-gold-400 transition-colors">
+            <i data-lucide="arrow-left" class="w-3 h-3"></i> Back to Home
+        </a>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.add('open');
+        });
+        document.getElementById('mobileMenuClose').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.remove('open');
+        });
+        document.getElementById('mobileSearchInput')?.addEventListener('input', (e) => {
+            document.getElementById('searchInput').value = e.target.value;
+            document.getElementById('searchInput').dispatchEvent(new Event('input'));
+        });
+    </script>
+</body>
+</html>
